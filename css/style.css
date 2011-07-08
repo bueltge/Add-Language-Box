@@ -1,0 +1,22 @@
+#fb-language-title {
+padding: 3px 4px;
+border-width: 1px;
+border-style: solid;
+-moz-border-radius: 3px;
+-khtml-border-radius: 3px;
+-webkit-border-radius: 3px;
+border-radius: 3px;
+font-size: 1.7em;
+line-height: 100%;
+width: 100%;
+outline: none;
+margin-bttom:10px;
+}
+
+#fb-language-box_resize {
+	margin: -14px -10px 0 !important;
+}
+
+#language_box .mceIframeContainer  {
+	background: #fff;
+}
