@@ -11,11 +11,11 @@
  * Domain Path:   /languages
  * Description:   Add language meta box for title and content to posts and pages
  * Author:        Frank Bültge
- * Version:       0.0.2
+ * Version:       0.0.3
  * Licence:       GPLv2
  * Author URI:    http://bueltge.de
  * Upgrade Check: none
- * Last Change:   07/08/2011
+ * Last Change:   01/04/2012
  */
 
 /**
@@ -40,6 +40,7 @@ if ( ! function_exists('add_action') ) {
 }
 
 if ( ! class_exists( 'fb_add_language_box' ) ) {
+	
 	class fb_add_language_box {
 		
 		// constructor
@@ -192,9 +193,9 @@ if ( ! class_exists( 'fb_add_language_box' ) ) {
 			}
 			
 			if ( isset($_POST['fb-language-box']) )
-				$this->data['language-box'] = esc_attr( $_POST['fb-language-box'] );
+				$this->data['language-box'] = $_POST['fb-language-box'];
 			if ( isset($_POST['fb-language-title']) )
-				$this->data['language-title'] = esc_attr( $_POST['fb-language-title'] );
+				$this->data['language-title'] = $_POST['fb-language-title'];
 			
 			if ( $this->data )
 				update_post_meta( $post_id, '_fb_language_data', $this->data );
