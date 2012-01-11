@@ -11,11 +11,10 @@
  * Domain Path:   /languages
  * Description:   Add language meta box for title and content to posts and pages
  * Author:        Frank Bültge
- * Version:       0.0.3
- * Licence:       GPLv2
+ * Version:       0.0.4
+ * License:       GPLv3
  * Author URI:    http://bueltge.de
  * Upgrade Check: none
- * Last Change:   01/04/2012
  */
 
 /**
@@ -43,15 +42,17 @@ if ( ! class_exists( 'fb_add_language_box' ) ) {
 	
 	class fb_add_language_box {
 		
+		static private $classobj = NULL;
+		
 		// constructor
-		public function __construct () {
+		public function __construct() {
 			
 			if ( ! is_admin() )
 				return;
 			
-			add_action( 'admin_init',     array( $this, 'on_admin_init' ) );
-			add_action( 'save_post',      array( $this, 'on_wp_insert_post' ) );
-			add_action( 'init',           array( $this, 'load_textdomain' ) );
+			add_action( 'admin_init', array( $this, 'on_admin_init' ) );
+			add_action( 'save_post',  array( $this, 'on_wp_insert_post' ) );
+			add_action( 'init',       array( $this, 'load_textdomain' ) );
 			register_uninstall_hook( __FILE__ , array( 'fb_add_language_box', 'uninstall' ) );
 			
 			add_action( 'admin_print_scripts-post.php',     array( $this, 'enqueue_script' ) );
@@ -66,6 +67,21 @@ if ( ! class_exists( 'fb_add_language_box' ) ) {
 		}
 		
 		/**
+		 * Handler for the action 'init'. Instantiates this class.
+		 * 
+		 * @since   0.0.4
+		 * @return  object $classobj
+		 */
+		public function get_object() {
+
+			if ( NULL === self :: $classobj ) {
+				self :: $classobj = new self;
+			}
+
+			return self :: $classobj;
+		}
+		
+		/**
 		 * return plugin comment data
 		 * 
 		 * @uses   get_plugin_data
@@ -75,7 +91,7 @@ if ( ! class_exists( 'fb_add_language_box' ) ) {
 		 *         Name, PluginURI, Version, Description, Author, AuthorURI, TextDomain, DomainPath, Network, Title
 		 * @return string
 		 */
-		private static function get_plugin_data ( $value = 'Version' ) {
+		private static function get_plugin_data( $value = 'Version' ) {
 			
 			if ( ! function_exists( 'get_plugin_data' ) )
 				require_once( ABSPATH . '/wp-admin/includes/plugin.php' );
@@ -86,13 +102,24 @@ if ( ! class_exists( 'fb_add_language_box' ) ) {
 			return $plugin_value;
 		}
 		
-		public static function get_textdomain () {
+		/**
+		 * Return string for translation
+		 * 
+		 * @since  0.0.1
+		 * @return string translation string from plugin comments on top
+		 */
+		public static function get_textdomain() {
 			
 			return self ::  get_plugin_data( 'TextDomain' );
 		}
 		
-		// active for multilanguage
-		public function load_textdomain () {
+		/**
+		 * Active for multilanguage, load translation files, if WPLANG was not empty
+		 * 
+		 * @since   0.0.1
+		 * @return  void
+		 */
+		public function load_textdomain() {
 			
 			if ( function_exists('load_plugin_textdomain') )
 				load_plugin_textdomain( 
@@ -102,8 +129,13 @@ if ( ! class_exists( 'fb_add_language_box' ) ) {
 				);
 		}
 		
-		// unsintall all postmetadata
-		public function uninstall () {
+		/**
+		 *  Unsintall all postmetadata, if plugin was uninstalled via WP backend
+		 * 
+		 * @since   0.0.1
+		 * @return  void
+		 */
+		public function uninstall() {
 			
 			$all_posts = get_posts( 'numberposts=0&post_type=post&post_status=' );
 			
@@ -112,35 +144,52 @@ if ( ! class_exists( 'fb_add_language_box' ) ) {
 			}
 		}
 		
-		// add script
-		public function enqueue_script () {
+		/**
+		 * Add script for init TinyMCE
+		 * 
+		 * @since   0.0.1
+		 * @return  void
+		 */
+		public function enqueue_script() {
+			
 			wp_enqueue_script( 
-				'tinymce4angbox', 
+				'tinymce4langbox', 
 				WP_PLUGIN_URL . '/' . dirname( plugin_basename(__FILE__) ) . '/js/script.js', 
-				array('jquery')
+				array( 'jquery', 'post' )
 			);
 		}
 		
-		// add sytle
-		public function enqueue_style () {
+		/**
+		 * Add stylesheet for custom TinyMCE
+		 * 
+		 * @since   0.0.1
+		 * @return  void
+		 */
+		public function enqueue_style() {
+			
 			wp_enqueue_style( 
 				'tinymce4langbox', 
 				WP_PLUGIN_URL . '/' . dirname( plugin_basename(__FILE__) ) . '/css/style.css'
 			);
 		}
 		
-		// admin init
-		public function on_admin_init () {
-			
+		/**
+		 * On admin init; add meta boxes to posts and page
+		 * 
+		 * @since   0.0.1
+		 * @return  void
+		 */
+		public function on_admin_init() {
+			// checj capabilities
 			if ( ! current_user_can( 'publish_posts' ) )
 				return;
-			
+			// add meta box for posts
 			add_meta_box( 'language_box',
 				__( 'English Content', self :: get_textdomain() ),
 				array( &$this, 'meta_box' ),
 				'post', 'normal', 'high'
 			);
-			
+			// add meta box for pages
 			add_meta_box( 'language_box',
 				__( 'English Content', self :: get_textdomain() ),
 				array( &$this, 'meta_box' ),
@@ -148,8 +197,13 @@ if ( ! class_exists( 'fb_add_language_box' ) ) {
 			);
 		}
 		
-		// check for preview
-		public function is_page_preview () {
+		/**
+		 * Check for preview of post, page
+		 * 
+		 * @since   0.0.1
+		 * @return  boolean true, if is preview
+		 */
+		public function is_page_preview() {
 			
 			if ( isset($_GET['preview_id']) )
 				$post_id = (int)$_GET['preview_id'];
@@ -167,17 +221,23 @@ if ( ! class_exists( 'fb_add_language_box' ) ) {
 			return FALSE;
 		}
 		
-		// after save post, save meta data for plugin
-		public function on_wp_insert_post ( $post_id ) {
+		/**
+		 * After save post, save meta data for plugin
+		 * 
+		 * @since   0.0.1
+		 * @param   $post_id  integer  post ID
+		 * @return  void
+		 */
+		public function on_wp_insert_post( $post_id ) {
 			
 			if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) 
 				return;
 			
-			if ( ! isset($_POST['fb_language_box_nonce']) || ! wp_verify_nonce( $_POST['fb_language_box_nonce'], plugin_basename( __FILE__ ) ) )
+			if ( ! isset($_POST['fb_language_box_nonce']) || 
+				 ! wp_verify_nonce( $_POST['fb_language_box_nonce'], plugin_basename( __FILE__ ) )
+				)
 				return;
 			
-			//if ( current_user_can('manage_options') )
-			//	var_dump('test1 '.$post_id);
 			if ( ! isset($post_id) && isset($_REQUEST['post_ID']) )
 				$post_id = (int) $_REQUEST['post_ID'];
 			if ( $this -> is_page_preview() && ! isset($post_id) )
@@ -203,14 +263,26 @@ if ( ! class_exists( 'fb_add_language_box' ) ) {
 			if ( empty($_POST['fb-language-box']) && empty($_POST['fb-language-title']) )
 				delete_post_meta( $post_id, '_fb_language_data' );
 		}
-
-		// load post_meta_data
+		
+		/**
+		 * Load post_meta_data
+		 * 
+		 * @since   0.0.1
+		 * @param   $post_id  integer  post ID
+		 * @return  array
+		 */
 		public function load_post_meta ( $post_id ) {
 			
 			return get_post_meta( $post_id, '_fb_language_data', TRUE );
 		}
 		
-		// meta box on post/page
+		/**
+		 * Get meta box for post/page
+		 * 
+		 * @since   0.0.1
+		 * @param   array $data
+		 * @return  void
+		 */
 		public function meta_box ( $data ) {
 			
 			wp_nonce_field( plugin_basename( __FILE__ ), 'fb_language_box_nonce' );
@@ -268,8 +340,8 @@ if ( ! class_exists( 'fb_add_language_box' ) ) {
 		
 	} // End class
 	
-	// instance class
-	$fb_add_language_box = new fb_add_language_box();
+	// instance class in WP
+	add_action( 'plugins_loaded', array( 'fb_add_language_box', 'get_object' ) );
 	
 	/**
 	 * Get the values of postmeta data outside the class as template tag
