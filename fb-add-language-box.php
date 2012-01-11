@@ -38,9 +38,9 @@ if ( ! function_exists('add_action') ) {
 	exit();
 }
 
-if ( ! class_exists( 'fb_add_language_box' ) ) {
+if ( ! class_exists( 'Fb_Add_Language_Box' ) ) {
 	
-	class fb_add_language_box {
+	class Fb_Add_Language_Box {
 		
 		static private $classobj = NULL;
 		
@@ -53,7 +53,7 @@ if ( ! class_exists( 'fb_add_language_box' ) ) {
 			add_action( 'admin_init', array( $this, 'on_admin_init' ) );
 			add_action( 'save_post',  array( $this, 'on_wp_insert_post' ) );
 			add_action( 'init',       array( $this, 'load_textdomain' ) );
-			register_uninstall_hook( __FILE__ , array( 'fb_add_language_box', 'uninstall' ) );
+			register_uninstall_hook( __FILE__ , array( 'Fb_Add_Language_Box', 'uninstall' ) );
 			
 			add_action( 'admin_print_scripts-post.php',     array( $this, 'enqueue_script' ) );
 			add_action( 'admin_print_scripts-post-new.php', array( $this, 'enqueue_script' ) );
@@ -319,7 +319,7 @@ if ( ! class_exists( 'fb_add_language_box' ) ) {
 			if ( ! $type )
 				return;
 			
-			$values = $this->load_post_meta($post_id);
+			$values = self :: load_post_meta($post_id);
 			if ( ! $values)
 				return;
 			$return = NULL;
@@ -353,13 +353,13 @@ if ( ! class_exists( 'fb_add_language_box' ) ) {
 	 * @return $return  String
 	 */
 	function get_language_facts( $type = 'content', $post_id = FALSE, $values = FALSE, $args = array() ) {
-		global $fb_add_language_box;
 		
 		if ( ! $post_id )
 			$post_id = get_the_ID();
 		
-		if ($post_id)
-			$fb_add_language_box -> get_language_facts( $type, $post_id, $values, $args );
+		if ( $post_id )
+			Fb_Add_Language_Box :: get_language_facts( $type, $post_id, $values, $args );
+		
 	}
 	
 } // End if class exists statement
